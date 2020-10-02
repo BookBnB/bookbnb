@@ -6,7 +6,7 @@
 This is the repository that keeps the Smart Contract of the BookBnB project.
 
 This is for educational purposes.
-DO NOT USE THIS IN PRODUCTION
+DO NOT USE THIS IN PRODUCTION!
 
 ## Prerequisites
 
