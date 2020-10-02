@@ -1,11 +1,12 @@
 # BookBnB
 
-![Node.js CI](https://github.com/gonzalpetraglia/bookbnb/workflows/Node.js%20CI/badge.svg?branch=master)
-[![codecov](https://codecov.io/gh/gonzalpetraglia/bookbnb/branch/master/graph/badge.svg?token=7QVEDDONY7)](undefined)
+![Node.js CI](https://github.com/taller-de-programacion-2/bookbnb/workflows/Node.js%20CI/badge.svg?branch=master)
+[![codecov](https://codecov.io/gh/taller-de-programacion-2/bookbnb/branch/master/graph/badge.svg?token=7QVEDDONY7)](undefined)
 
 This is the repository that keeps the Smart Contract of the BookBnB project.
 
-This is for educational purposes do not use this in production
+This is for educational purposes.
+DO NOT USE THIS IN PRODUCTION
 
 ## Prerequisites
 
