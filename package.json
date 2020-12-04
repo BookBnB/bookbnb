@@ -12,7 +12,7 @@
     "lint": "npm run lint-js && npm run lint-sc",
     "coverage": "truffle run coverage",
     "deploy-local": "truffle migrate --network development",
-    "deploy-ropsten": "truffle migrate --network ropsten",
+    "deploy-ropsten": "truffle migrate --network ropsten --reset",
     "ganache": "ganache-cli --deterministic",
     "release": "standard-version"
   },
@@ -21,6 +21,7 @@
   "dependencies": {
     "@truffle/hdwallet-provider": "1.1.0",
     "openzeppelin-solidity": "3.2.0",
+    "solc": "0.6.12",
     "truffle": "5.1.46"
   },
   "devDependencies": {

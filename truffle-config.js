@@ -15,10 +15,10 @@ module.exports = {
       network_id: '*', // Any network (default: none)
     },
     ropsten: {
-      port: 8777, // Custom port
       network_id: '*', // Custom network
       provider: () => new HDWalletProvider(process.env.MNEMONIC, process.env.INFURA_ROPSTEN_NODE),
       websockets: true, // Enable EventEmitter interface for web3 (default: false)
+      gasPrice: 10000000000
     },
   },
 
