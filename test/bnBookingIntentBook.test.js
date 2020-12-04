@@ -113,6 +113,7 @@ contract('GIVEN someone created a room', function ([, roomOwner, booker]) {
     this.price = '100000000000000000';
     this.bnBooking = await BnBooking.deployed();
     this.bnBooking.createRoom(this.price, { from: roomOwner });
+    this.feeReceiver = await this.bnBooking.feeReceiver();
   });
   describe('WHEN someone creates an intent to book with more than enough value being transfered', function () {
     before(async function () {
@@ -120,6 +121,8 @@ contract('GIVEN someone created a room', function ([, roomOwner, booker]) {
       this.initialBalanceContract = new BN(
         (await web3.eth.getBalance(this.bnBooking.address)).toString()
       );
+      this.previousBalanceFeeReceiver = new BN(await web3.eth.getBalance(this.feeReceiver));
+      this.previousBalanceRoomOwner = new BN(await web3.eth.getBalance(roomOwner));
       this.tx = await this.bnBooking.intentBook(0, 1, 1, 2020, {
         from: booker,
         value: new BN(this.price).mul(new BN(2)),
@@ -128,6 +131,8 @@ contract('GIVEN someone created a room', function ([, roomOwner, booker]) {
       this.finalBalanceContract = new BN(
         (await web3.eth.getBalance(this.bnBooking.address)).toString()
       );
+      this.finalBalanceFeeReceiver = new BN(await web3.eth.getBalance(this.feeReceiver));
+      this.finalBalanceRoomOwner = new BN(await web3.eth.getBalance(roomOwner));
     });
     it('THEN an event was emitted', async function () {
       return expectEvent(this.tx, 'BookIntentCreated', {
@@ -156,13 +161,15 @@ contract('GIVEN someone created a room', function ([, roomOwner, booker]) {
     });
 
     it('THEN the room owner still doesnt gets its share', async function () {
-      return expect(await this.bnBooking.accumulatedPayments(roomOwner)).to.eq.BN(new BN(0));
+      return expect(this.finalBalanceRoomOwner.sub(this.previousBalanceRoomOwner)).to.eq.BN(
+        new BN(0)
+      );
     });
 
     it('THEN the fee receiver was not charged yet', async function () {
-      return expect(
-        await this.bnBooking.accumulatedPayments(await this.bnBooking.feeReceiver())
-      ).to.eq.BN(new BN(0));
+      return expect(this.finalBalanceFeeReceiver.sub(this.previousBalanceFeeReceiver)).to.eq.BN(
+        new BN(0)
+      );
     });
   });
 });

@@ -41,13 +41,19 @@ contract('GIVEN the contract has changed the receiver and the feeRate', function
   describe('WHEN a user books a room', function () {
     before(async function () {
       await this.bnBooking.intentBook(0, 1, 1, 2020, { from: booker, value: this.price });
-      return this.bnBooking.accept(0, booker, 1, 1, 2020, { from: owner });
+      this.previousBalanceNormalUser = new BN(await web3.eth.getBalance(normalUser));
+      this.previousBalanceOwner = new BN(await web3.eth.getBalance(owner));
+      await this.bnBooking.accept(0, booker, 1, 1, 2020, { from: owner, gasPrice: 0 });
+      this.afterBalanceNormalUser = new BN(await web3.eth.getBalance(normalUser));
+      this.afterBalanceOwner = new BN(await web3.eth.getBalance(owner));
     });
     it('THEN the new receiver receives the new fee', async function () {
-      return expect(await this.bnBooking.accumulatedPayments(normalUser)).to.eq.BN(this.price);
+      return expect(this.afterBalanceNormalUser.sub(this.previousBalanceNormalUser)).to.eq.BN(
+        this.price
+      );
     });
     it('THEN the owner receives the rest', async function () {
-      return expect(await this.bnBooking.accumulatedPayments(owner)).to.eq.BN(0);
+      return expect(this.afterBalanceOwner.sub(this.previousBalanceOwner)).to.eq.BN(0);
     });
   });
 });

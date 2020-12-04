@@ -15,6 +15,7 @@ contract('GIVEN someone created a room', function ([, roomOwner, booker]) {
     this.price = '100000000000000000';
     this.bnBooking = await BnBooking.deployed();
     await this.bnBooking.createRoom(this.price, { from: roomOwner });
+    this.feeReceiver = await this.bnBooking.feeReceiver();
   });
   describe('WHEN someone tries to book with just enough value being transfered', function () {
     before(async function () {
@@ -22,7 +23,14 @@ contract('GIVEN someone created a room', function ([, roomOwner, booker]) {
         from: booker,
         value: new BN(this.price),
       });
-      this.tx = await this.bnBooking.accept(0, booker, 1, 1, 2020, { from: roomOwner });
+      this.previousBalanceRoomOwner = new BN(await web3.eth.getBalance(roomOwner));
+      this.previousBalanceFeeReceiver = new BN(await web3.eth.getBalance(this.feeReceiver));
+      this.tx = await this.bnBooking.accept(0, booker, 1, 1, 2020, {
+        from: roomOwner,
+        gasPrice: 0,
+      });
+      this.finalBalanceRoomOwner = new BN(await web3.eth.getBalance(roomOwner));
+      this.finalBalanceFeeReceiver = new BN(await web3.eth.getBalance(this.feeReceiver));
     });
     it('THEN an event was emitted', async function () {
       return expectEvent(this.tx, 'RoomBooked', {
@@ -37,16 +45,14 @@ contract('GIVEN someone created a room', function ([, roomOwner, booker]) {
     });
 
     it('THEN the room owner gets its share', async function () {
-      return expect(await this.bnBooking.accumulatedPayments(roomOwner)).to.eq.BN(
+      return expect(this.finalBalanceRoomOwner.sub(this.previousBalanceRoomOwner)).to.eq.BN(
         // Assuming 50% fee rate
         new BN(this.price).div(new BN(2))
       );
     });
 
     it('THEN the fee receiver gets its share', async function () {
-      return expect(
-        await this.bnBooking.accumulatedPayments(await this.bnBooking.feeReceiver())
-      ).to.eq.BN(
+      return expect(this.finalBalanceFeeReceiver.sub(this.previousBalanceFeeReceiver)).to.eq.BN(
         // Assuming 50% fee rate
         new BN(this.price).div(new BN(2))
       );
@@ -75,14 +81,22 @@ contract('GIVEN someone created a room', function ([, roomOwner, booker]) {
     this.price = '100000000000000000';
     this.bnBooking = await BnBooking.deployed();
     this.bnBooking.createRoom(this.price, { from: roomOwner });
+    this.feeReceiver = await this.bnBooking.feeReceiver();
   });
   describe('WHEN someone tries to book with more than enough value being transfered', function () {
     before(async function () {
+      this.previousBalanceRoomOwner = new BN(await web3.eth.getBalance(roomOwner));
+      this.previousBalanceFeeReceiver = new BN(await web3.eth.getBalance(this.feeReceiver));
       await this.bnBooking.intentBook(0, 1, 1, 2020, {
         from: booker,
         value: new BN(this.price).mul(new BN(2)),
       });
-      this.tx = await this.bnBooking.accept(0, booker, 1, 1, 2020, { from: roomOwner });
+      this.tx = await this.bnBooking.accept(0, booker, 1, 1, 2020, {
+        from: roomOwner,
+        gasPrice: 0,
+      });
+      this.finalBalanceRoomOwner = new BN(await web3.eth.getBalance(roomOwner));
+      this.finalBalanceFeeReceiver = new BN(await web3.eth.getBalance(this.feeReceiver));
     });
     it('THEN an event was emitted', async function () {
       return expectEvent(this.tx, 'RoomBooked', {
@@ -97,16 +111,14 @@ contract('GIVEN someone created a room', function ([, roomOwner, booker]) {
     });
 
     it('THEN the room owner gets its share', async function () {
-      return expect(await this.bnBooking.accumulatedPayments(roomOwner)).to.eq.BN(
+      return expect(this.finalBalanceRoomOwner.sub(this.previousBalanceRoomOwner)).to.eq.BN(
         // Assuming 50% fee rate
         new BN(this.price).div(new BN(2))
       );
     });
 
     it('THEN the fee receiver gets its share', async function () {
-      return expect(
-        await this.bnBooking.accumulatedPayments(await this.bnBooking.feeReceiver())
-      ).to.eq.BN(
+      return expect(this.finalBalanceFeeReceiver.sub(this.previousBalanceFeeReceiver)).to.eq.BN(
         // Assuming 50% fee rate
         new BN(this.price).div(new BN(2))
       );
@@ -136,6 +148,7 @@ contract(
       this.initPrice = '100000000000000000';
       this.newPrice = '200000000000000000';
       this.bnBooking = await BnBooking.deployed();
+      this.feeReceiver = await this.bnBooking.feeReceiver();
       await this.bnBooking.createRoom(this.initPrice, { from: roomOwner });
       await this.bnBooking.intentBook(0, 1, 1, 2020, {
         from: booker,
@@ -145,9 +158,14 @@ contract(
     });
     describe('WHEN the owner accepts it', function () {
       before(async function () {
+        this.previousBalanceRoomOwner = new BN(await web3.eth.getBalance(roomOwner));
+        this.previousBalanceFeeReceiver = new BN(await web3.eth.getBalance(this.feeReceiver));
         this.tx = await this.bnBooking.accept(0, booker, 1, 1, 2020, {
           from: roomOwner,
+          gasPrice: 0,
         });
+        this.finalBalanceRoomOwner = new BN(await web3.eth.getBalance(roomOwner));
+        this.finalBalanceFeeReceiver = new BN(await web3.eth.getBalance(this.feeReceiver));
       });
       it('THEN an event was emitted with the initial price', async function () {
         return expectEvent(this.tx, 'RoomBooked', {
@@ -162,16 +180,14 @@ contract(
       });
 
       it('THEN the room owner gets its share', async function () {
-        return expect(await this.bnBooking.accumulatedPayments(roomOwner)).to.eq.BN(
+        return expect(this.finalBalanceRoomOwner.sub(this.previousBalanceRoomOwner)).to.eq.BN(
           // Assuming 50% fee rate
           new BN(this.initPrice).div(new BN(2))
         );
       });
 
       it('THEN the fee receiver gets its share', async function () {
-        return expect(
-          await this.bnBooking.accumulatedPayments(await this.bnBooking.feeReceiver())
-        ).to.eq.BN(
+        return expect(this.finalBalanceFeeReceiver.sub(this.previousBalanceFeeReceiver)).to.eq.BN(
           // Assuming 50% fee rate
           new BN(this.initPrice).div(new BN(2))
         );
@@ -213,23 +229,26 @@ contract('GIVEN someone created a room and someone created an intent for two day
       from: booker,
       value: new BN(this.price),
     });
+    this.feeReceiver = await this.bnBooking.feeReceiver();
   });
   describe('WHEN the owner accepts the two', function () {
     before(async function () {
-      await this.bnBooking.accept(0, booker, 1, 1, 2020, { from: roomOwner });
-      await this.bnBooking.accept(0, booker, 2, 1, 2020, { from: roomOwner });
+      this.previousBalanceRoomOwner = new BN(await web3.eth.getBalance(roomOwner));
+      this.previousBalanceFeeReceiver = new BN(await web3.eth.getBalance(this.feeReceiver));
+      await this.bnBooking.accept(0, booker, 1, 1, 2020, { from: roomOwner, gasPrice: 0 });
+      await this.bnBooking.accept(0, booker, 2, 1, 2020, { from: roomOwner, gasPrice: 0 });
+      this.finalBalanceRoomOwner = new BN(await web3.eth.getBalance(roomOwner));
+      this.finalBalanceFeeReceiver = new BN(await web3.eth.getBalance(this.feeReceiver));
     });
 
     it('THEN the fee receiver gets both of its share', async function () {
-      return expect(
-        await this.bnBooking.accumulatedPayments(await this.bnBooking.feeReceiver())
-      ).to.eq.BN(
+      return expect(this.finalBalanceFeeReceiver.sub(this.previousBalanceFeeReceiver)).to.eq.BN(
         // Assuming 50% fee rate
         new BN(this.price)
       );
     });
     it('THEN the room owner receiver gets both of its share', async function () {
-      return expect(await this.bnBooking.accumulatedPayments(roomOwner)).to.eq.BN(
+      return expect(this.finalBalanceRoomOwner.sub(this.previousBalanceRoomOwner)).to.eq.BN(
         // Assuming 50% fee rate
         new BN(this.price)
       );
@@ -362,7 +381,14 @@ contract('GIVEN someone created a room and three users created an intent', async
   });
   describe('WHEN the room owner accepts one', function () {
     before(async function () {
-      await this.bnBooking.accept(0, firstBooker, 1, 1, 2020, { from: roomOwner });
+      this.previousBalanceSecondBooker = new BN(await web3.eth.getBalance(secondBooker));
+      this.previousBalanceThirdBooker = new BN(await web3.eth.getBalance(thirdBooker));
+      await this.bnBooking.accept(0, firstBooker, 1, 1, 2020, {
+        from: roomOwner,
+        gasPrice: 0,
+      });
+      this.finalBalanceSecondBooker = new BN(await web3.eth.getBalance(secondBooker));
+      this.finalBalanceThirdBooker = new BN(await web3.eth.getBalance(thirdBooker));
     });
     it('THEN the room owner can not accept the second', async function () {
       return expectRevert(
@@ -393,11 +419,15 @@ contract('GIVEN someone created a room and three users created an intent', async
     });
 
     it('THEN the second booker gets its money back', async function () {
-      return expect(await this.bnBooking.accumulatedPayments(secondBooker)).to.eq.BN(this.price);
+      return expect(this.finalBalanceSecondBooker.sub(this.previousBalanceSecondBooker)).to.eq.BN(
+        this.price
+      );
     });
 
     it('THEN the third booker gets its money back', async function () {
-      return expect(await this.bnBooking.accumulatedPayments(thirdBooker)).to.eq.BN(this.price);
+      return expect(this.finalBalanceThirdBooker.sub(this.previousBalanceThirdBooker)).to.eq.BN(
+        this.price
+      );
     });
   });
 });
