@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.0](https://github.com/taller-de-programacion-2/bookbnb/compare/v2.0.0...v2.1.0) (2020-12-05)
+
+
+### Features
+
+* Add new helping functions and remove withdrawal ([54e5b62](https://github.com/taller-de-programacion-2/bookbnb/commit/54e5b62a726671a89d7e0aea2a2246c04714d069))
+* Add some things to smooth out the deployment ([aa42750](https://github.com/taller-de-programacion-2/bookbnb/commit/aa4275096595548e2683517a5d1176826a1ec3a3))
+
+
+### Bug Fixes
+
+* Fix dates validation ([e24d94f](https://github.com/taller-de-programacion-2/bookbnb/commit/e24d94f23a29d74dcdb53d001b6c4e716e4bf48b))
+
 ## 2.0.0 (2020-10-02)
 
 
