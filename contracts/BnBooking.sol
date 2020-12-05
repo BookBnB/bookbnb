@@ -286,6 +286,7 @@ contract BnBooking is Ownable, BnBookingEvents {
         require(room.owner == msg.sender, "Not owner");
         BookingIntent storage intent = bookingIntents[roomId][getDateId(day, month, year)][booker];
         require(intent.price != 0, "Intent not found");
+        require(!booked(roomId, day, month, year), "Room already booked");
         splitPayment(msg.sender, intent.price);
 
         bookings[roomId][getDateId(day, month, year)] = booker;
@@ -363,11 +364,11 @@ contract BnBooking is Ownable, BnBookingEvents {
     }
 
     function isValidDate(uint256 day, uint256 month, uint256 year) internal pure returns(bool) {
-
+        if (month < 1 || month > 12) return false;
         bool dayIsPositive = day > 0;
         bool leapYear = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
         bool doesntExceedFebruary = (day <= 28) || (leapYear && day <= 29);
-        bool isLongMonth = month == 1||
+        bool isLongMonth = month == 1 ||
             month == 3 ||
             month == 5 ||
             month == 6 ||
