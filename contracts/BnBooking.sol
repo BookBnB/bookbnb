@@ -185,12 +185,6 @@ contract BnBooking is Ownable, BnBookingEvents {
         uint256 month,
         uint256 year
     ) public {
-        address[] storage intenters = possibleBookers[roomId][getDateId(day, month, year)];
-        uint256 numberIntenters = intenters.length;
-        for (uint256 i = 0; i < numberIntenters; i++) {
-            if (intenters[i] != booker)
-                _repayAndRemove(roomId, payable(intenters[i]), day, month, year);
-        }
         _accept(roomId, booker, day, month, year);
     }
 
@@ -282,6 +276,12 @@ contract BnBooking is Ownable, BnBookingEvents {
     ) internal
         validDate(day, month, year)
         roomExists(roomId) {
+        address[] storage intenters = possibleBookers[roomId][getDateId(day, month, year)];
+        uint256 numberIntenters = intenters.length;
+        for (uint256 i = 0; i < numberIntenters; i++) {
+            if (intenters[i] != booker)
+                _repayAndRemove(roomId, payable(intenters[i]), day, month, year);
+        }
         Room storage room = rooms[roomId];
         require(room.owner == msg.sender, "Not owner");
         BookingIntent storage intent = bookingIntents[roomId][getDateId(day, month, year)][booker];
