@@ -35,6 +35,14 @@ contract BnBookingEvents {
         uint256 month,
         uint256 year
     );
+    event BookIntentCancelled(
+        uint256 indexed roomId,
+        address indexed booker,
+        address indexed owner,
+        uint256 day,
+        uint256 month,
+        uint256 year
+    );
 }
 
 contract BnBooking is Ownable, BnBookingEvents {
@@ -211,6 +219,49 @@ contract BnBooking is Ownable, BnBookingEvents {
             _accept(roomId, booker, day, month, year);
             (day, month, year) = incrementDate(day, month, year);
         }
+    }
+
+    function cancelBatch(
+        uint256 roomId,
+        uint256 initialDay,
+        uint256 initialMonth,
+        uint256 initialYear,
+        uint256 lastDay,
+        uint256 lastMonth,
+        uint256 lastYear
+    ) public {
+        uint256 day = initialDay;
+        uint256 month = initialMonth;
+        uint256 year = initialYear;
+        while (lessOrEqualDate(day, month, year, lastDay, lastMonth, lastYear)) {
+            _cancel(roomId, day, month, year);
+            (day, month, year) = incrementDate(day, month, year);
+        }
+    }
+
+    function _cancel(
+        uint256 roomId,
+        uint256 day,
+        uint256 month,
+        uint256 year
+    ) internal 
+        validDate(day, month, year)
+        roomExists(roomId)
+    {
+        Room storage room = rooms[roomId];
+        BookingIntent storage intent = bookingIntents[roomId][getDateId(day, month, year)][msg.sender];
+        require(intent.price != 0, "Intent not found");
+        emit BookIntentCancelled(
+            roomId,
+            msg.sender,
+            room.owner,
+            day,
+            month,
+            year
+        );
+        sendPayment(msg.sender, intent.price);
+        delete bookingIntents[roomId][getDateId(day, month, year)][msg.sender];
+        moveLastPossibleBooker(roomId, intent.positionBooker, day, month, year);
     }
 
     function removeRoom(uint256 roomId) public roomExists(roomId) {
