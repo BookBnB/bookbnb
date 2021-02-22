@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.1](https://github.com/taller-de-programacion-2/bookbnb/compare/v2.1.0...v2.1.1) (2021-02-22)
+
+
+### Bug Fixes
+
+* fix accept and reject batch ([3842c73](https://github.com/taller-de-programacion-2/bookbnb/commit/3842c738d2e2cc999b6e1a9ec2a0bfd4e0e804cc))
+
 ## [2.1.0](https://github.com/taller-de-programacion-2/bookbnb/compare/v2.0.0...v2.1.0) (2020-12-05)
 
 
