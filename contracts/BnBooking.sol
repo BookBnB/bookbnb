@@ -200,6 +200,8 @@ contract BnBooking is Ownable, BnBookingEvents {
                 _repayAndRemove(roomId, payable(intenters[i]), day, month, year);
         }
         _accept(roomId, booker, day, month, year);
+        delete bookingIntents[roomId][getDateId(day, month, year)][booker];
+        delete possibleBookers[roomId][getDateId(day, month, year)];
     }
 
     function acceptBatch(
@@ -217,6 +219,9 @@ contract BnBooking is Ownable, BnBookingEvents {
         uint256 year = initialYear;
         while (lessOrEqualDate(day, month, year, lastDay, lastMonth, lastYear)) {
             _accept(roomId, booker, day, month, year);
+            BookingIntent storage intent = bookingIntents[roomId][getDateId(day, month, year)][booker];
+            moveLastPossibleBooker(roomId, intent.positionBooker, day, month, year);
+            delete bookingIntents[roomId][getDateId(day, month, year)][booker];
             (day, month, year) = incrementDate(day, month, year);
         }
     }
@@ -350,8 +355,6 @@ contract BnBooking is Ownable, BnBookingEvents {
             month,
             year
         );
-        delete bookingIntents[roomId][getDateId(day, month, year)][booker];
-        delete possibleBookers[roomId][getDateId(day, month, year)];
     }
 
     function _reject(
@@ -377,8 +380,8 @@ contract BnBooking is Ownable, BnBookingEvents {
             year
         );
         sendPayment(booker, intent.price);
-        delete bookingIntents[roomId][getDateId(day, month, year)][booker];
         moveLastPossibleBooker(roomId, intent.positionBooker, day, month, year);
+        delete bookingIntents[roomId][getDateId(day, month, year)][booker];
     }
 
     function incrementDate(uint256 day, uint256 month, uint256 year) internal pure returns (uint256, uint256, uint256) {
@@ -387,10 +390,12 @@ contract BnBooking is Ownable, BnBookingEvents {
         return (1, 1, year + 1);
     }
 
-    function moveLastPossibleBooker(uint256 roomId, uint256 newBookerPostion, uint256 day, uint256 month, uint256 year) internal {
-        address movedBooker = possibleBookers[roomId][getDateId(day, month, year)][newBookerPostion];
+    function moveLastPossibleBooker(uint256 roomId, uint256 newBookerPosition, uint256 day, uint256 month, uint256 year) internal {
+        address movedBooker = possibleBookers[roomId][getDateId(day, month, year)][
+            possibleBookers[roomId][getDateId(day, month, year)].length - 1];
+        possibleBookers[roomId][getDateId(day, month, year)][newBookerPosition] = movedBooker;
+        bookingIntents[roomId][getDateId(day, month, year)][movedBooker].positionBooker = newBookerPosition;
         possibleBookers[roomId][getDateId(day, month, year)].pop();
-        bookingIntents[roomId][getDateId(day, month, year)][movedBooker].positionBooker = newBookerPostion;
     }
 
     function splitPayment(address payable paymentReceiver, uint256 totalPayment) internal {
